@@ -8,12 +8,12 @@ import (
 	"github.com/rubenhoenle/schlingel/page"
 )
 
-func BuildRouter() *gin.Engine {
+func BuildRouter(persistence Persistence) *gin.Engine {
 	router := gin.Default()
 	// Set a lower memory limit for multipart forms (default is 32 MiB)
 	router.MaxMultipartMemory = 8 << 20 // 8 MiB
-	router.POST("/files/upload", uploadFile)
-	router.GET("/files/:filename", downloadFile)
+	routerAddUploadFile(router, persistence)
+	routerAddDownloadFile(router, persistence)
 	router.GET("/", func(c *gin.Context) {
 		_ = render(c, http.StatusOK, page.Index())
 	})

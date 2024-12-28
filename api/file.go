@@ -2,33 +2,74 @@ package api
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/jgero/schlingel/file"
+	"github.com/jgero/schlingel/model"
 )
 
-func uploadFile(c *gin.Context) {
-	file, err := c.FormFile("file")
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	c.SaveUploadedFile(file, fmt.Sprintf("./%s", file.Filename))
-
-	c.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
+type Persistence interface {
+	NewTx() (TransactionHandler, error)
+	GetFileByUuid(uuid.UUID) (*model.SchlingelFile, error)
 }
 
-func downloadFile(c *gin.Context) {
-	filename := c.Param("filename")
-	filepath := fmt.Sprintf("./%s", filename)
+type TransactionHandler interface {
+	Commit() error
+	Rollback() error
+	CreateFile(model.SchlingelFile) error
+}
 
-	if _, err := os.Stat(filepath); err != nil {
-		c.String(http.StatusNotFound, fmt.Sprintf("'%s' does not exist.", filename))
-		return
-	}
+func routerAddUploadFile(router *gin.Engine, persistence Persistence) {
+	router.POST("/files/upload", func(c *gin.Context) {
+		uploadedFile, err := c.FormFile("file")
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
 
-	c.File(filepath)
+		filetype, err := file.GetFileTypeFromFilename(uploadedFile.Filename)
+		if err != nil {
+			c.String(http.StatusBadRequest, "Unsupported filetype")
+			return
+		}
 
-	c.String(http.StatusOK, fmt.Sprintf("'%s' downloaded!", filename))
+		fileUuid := uuid.New()
+		file := model.SchlingelFile{UUID: fileUuid, Filename: uploadedFile.Filename, FileHash: "", FileType: filetype, OwnerUUID: uuid.New()}
+
+		c.SaveUploadedFile(uploadedFile, fmt.Sprintf("./%s", uploadedFile.Filename))
+
+		c.String(http.StatusOK, fmt.Sprintf("'%s' uploaded! UUID: %s", uploadedFile.Filename, file.UUID.String()))
+	})
+}
+
+func routerAddDownloadFile(router *gin.Engine, persistence Persistence) {
+	router.GET("/files/:uuid", func(c *gin.Context) {
+		fileUuidStr := c.Param("uuid")
+
+		fileUuid, err := uuid.Parse(fileUuidStr)
+		if err != nil {
+			c.String(http.StatusBadRequest, "invalid uuid")
+		}
+
+		file, err := persistence.GetFileByUuid(fileUuid)
+		if file == nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+
+		filepath := fmt.Sprintf("./%s", file.Filename)
+
+		if _, err := os.Stat(filepath); err != nil {
+			// this shouldn't happen
+			c.String(http.StatusNotFound, fmt.Sprintf("'%s' does not exist.", file.Filename))
+			return
+		}
+
+		c.File(filepath)
+
+		c.String(http.StatusOK, fmt.Sprintf("'%s' downloaded!", file.Filename))
+	})
 }

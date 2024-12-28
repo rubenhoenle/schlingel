@@ -7,12 +7,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/jgero/schlingel/persistence/inmemory"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUploadFile(t *testing.T) {
 	t.Run("upload without attached file", func(t *testing.T) {
-		router := BuildRouter()
+		router := BuildRouter(inmemory.NewInMemoryPersistence())
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/files/upload", nil)
