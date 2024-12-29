@@ -5,7 +5,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/gin-gonic/gin"
-	"github.com/jgero/schlingel/page"
+	"github.com/rubenhoenle/schlingel/page"
 )
 
 func BuildRouter() *gin.Engine {

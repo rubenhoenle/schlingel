@@ -1,4 +1,4 @@
-module github.com/jgero/schlingel
+module github.com/rubenhoenle/schlingel
 
 go 1.23.4
 

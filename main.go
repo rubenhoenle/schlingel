@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/jgero/schlingel/api"
+	"github.com/rubenhoenle/schlingel/api"
 )
 
 func main() {
