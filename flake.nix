@@ -19,7 +19,7 @@
         name = "schlingel";
         version = "0.0.1";
         #vendorHash = pkgs.lib.fakeHash;
-        vendorHash = "sha256-hg+S9rfKPpCDsFyXXrGDtHNytFQ3AIU/PJA6jCLvYdU=";
+        vendorHash = "sha256-xHqZPpEfnJMcRCxImrbGcYB8RI77RH+I1TeIk9aqVeo=";
         preBuild = ''
           ${pkgs.templ}/bin/templ generate
         '';

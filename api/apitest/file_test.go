@@ -1,4 +1,4 @@
-package api
+package apitest
 
 import (
 	"fmt"
@@ -7,13 +7,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jgero/schlingel/persistence/inmemory"
+	"github.com/jgero/schlingel/api"
+	"github.com/jgero/schlingel/persistence"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUploadFile(t *testing.T) {
 	t.Run("upload without attached file", func(t *testing.T) {
-		router := BuildRouter(inmemory.NewInMemoryPersistence())
+		router := api.BuildRouter(persistence.NewOrmPersistence())
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodPost, "/files/upload", nil)
@@ -26,7 +27,7 @@ func TestUploadFile(t *testing.T) {
 
 func TestDownloadFile(t *testing.T) {
 	t.Run("download non-existent file", func(t *testing.T) {
-		router := BuildRouter()
+		router := api.BuildRouter(persistence.NewOrmPersistence())
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/files/foo.pdf", nil)
@@ -37,7 +38,7 @@ func TestDownloadFile(t *testing.T) {
 	})
 
 	t.Run("download existent file", func(t *testing.T) {
-		router := BuildRouter()
+		router := api.BuildRouter(persistence.NewOrmPersistence())
 
 		filename := "testfile.pdf"
 		file, err := os.Create(filename)

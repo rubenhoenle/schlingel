@@ -12,14 +12,11 @@ import (
 )
 
 type Persistence interface {
-	NewTx() (TransactionHandler, error)
+	CreateFile(file model.SchlingelFile) error
+	//DeleteFile(file model.SchlingelFile) error
+	//DeleteFileByUuid(uuid.UUID) error
+	//UpdateFile(file model.SchlingelFile) error
 	GetFileByUuid(uuid.UUID) (*model.SchlingelFile, error)
-}
-
-type TransactionHandler interface {
-	Commit() error
-	Rollback() error
-	CreateFile(model.SchlingelFile) error
 }
 
 func routerAddUploadFile(router *gin.Engine, persistence Persistence) {
@@ -38,6 +35,12 @@ func routerAddUploadFile(router *gin.Engine, persistence Persistence) {
 
 		fileUuid := uuid.New()
 		file := model.SchlingelFile{UUID: fileUuid, Filename: uploadedFile.Filename, FileHash: "", FileType: filetype, OwnerUUID: uuid.New()}
+
+		persistence.CreateFile(file)
+		if err != nil {
+			c.Status(http.StatusInternalServerError)
+			return
+		}
 
 		c.SaveUploadedFile(uploadedFile, fmt.Sprintf("./%s", uploadedFile.Filename))
 

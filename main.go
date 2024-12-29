@@ -2,11 +2,11 @@ package main
 
 import (
 	"github.com/rubenhoenle/schlingel/api"
-	"github.com/jgero/schlingel/persistence/inmemory"
+	"github.com/rubenhoenle/schlingel/persistence"
 )
 
 func main() {
-	persistence := inmemory.NewInMemoryPersistence()
+	persistence := persistence.NewOrmPersistence()
 	router := api.BuildRouter(persistence)
 	router.Run(":8080")
 }
